@@ -141,3 +141,6 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Personal slide decks
+qmd-llmwiki-slide-presentation.html
