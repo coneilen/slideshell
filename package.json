@@ -1,0 +1,21 @@
+{
+  "name": "slideshell",
+  "productName": "SlideShell",
+  "version": "0.1.0",
+  "description": "SlideShell — view a Clawpilot HTML slide deck alongside a zsh terminal, in tabs.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "rebuild": "electron-rebuild -f -w node-pty",
+    "postinstall": "electron-rebuild -f -w node-pty || true"
+  },
+  "devDependencies": {
+    "electron": "^32.0.0",
+    "@electron/rebuild": "^3.6.0"
+  },
+  "dependencies": {
+    "node-pty": "^1.0.0",
+    "@xterm/xterm": "^5.5.0",
+    "@xterm/addon-fit": "^0.10.0"
+  }
+}

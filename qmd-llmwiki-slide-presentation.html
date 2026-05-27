@@ -1,0 +1,1057 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QMD and llm.wiki Explained Simply</title>
+  <link rel="icon" href="data:,">
+  <script>
+    (() => {
+      const param = new URLSearchParams(window.location.search).get("clawpilotTheme");
+      const theme =
+        param || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+  <style>
+    :root {
+      color-scheme: light;
+      --cp-bg: #f7f4ef;
+      --cp-bg-elevated: #fcfbf8;
+      --cp-surface: #ffffff;
+      --cp-surface-soft: #f5f5f5;
+      --cp-border: #dedede;
+      --cp-border-strong: #919191;
+      --cp-text: #242424;
+      --cp-text-muted: #5c5c5c;
+      --cp-text-soft: #6f6f6f;
+      --cp-accent: #b11f4b;
+      --cp-accent-hover: #9a1a41;
+      --cp-accent-soft: rgba(177, 31, 75, 0.08);
+      --cp-accent-fg: #ffffff;
+      --cp-success: #16a34a;
+      --cp-danger: #dc2626;
+      --cp-warning: #f59e0b;
+      --cp-link: #0078d4;
+      --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.12);
+      --cp-overlay: rgba(255, 255, 255, 0.8);
+      --cp-panel: rgba(255, 255, 255, 0.86);
+      --cp-panel-strong: rgba(255, 255, 255, 0.96);
+      --cp-sheen: rgba(255, 255, 255, 0.55);
+      --cp-highlight: rgba(177, 31, 75, 0.12);
+    }
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --cp-bg: #3d3b3a;
+      --cp-bg-elevated: #343231;
+      --cp-surface: #292929;
+      --cp-surface-soft: #2e2e2e;
+      --cp-border: #474747;
+      --cp-border-strong: #5f5f5f;
+      --cp-text: #dedede;
+      --cp-text-muted: #919191;
+      --cp-text-soft: #b0b0b0;
+      --cp-accent: #fd8ea1;
+      --cp-accent-hover: #fb7b91;
+      --cp-accent-soft: rgba(253, 142, 161, 0.14);
+      --cp-accent-fg: #1a1a1a;
+      --cp-success: #4ade80;
+      --cp-danger: #f87171;
+      --cp-warning: #fbbf24;
+      --cp-link: #4da6ff;
+      --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
+      --cp-overlay: rgba(41, 41, 41, 0.88);
+      --cp-panel: rgba(41, 41, 41, 0.72);
+      --cp-panel-strong: rgba(41, 41, 41, 0.96);
+      --cp-sheen: rgba(255, 255, 255, 0.04);
+      --cp-highlight: rgba(253, 142, 161, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+    }
+
+    body {
+      background: var(--cp-bg);
+      color: var(--cp-text);
+      font-family: "Segoe UI", Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow: hidden;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .deck {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      min-height: 100%;
+    }
+
+    .topbar,
+    .bottombar {
+      align-items: center;
+      background: var(--cp-panel-strong);
+      border-color: var(--cp-border);
+      display: flex;
+      gap: 16px;
+      justify-content: space-between;
+      padding: 12px 20px;
+      position: relative;
+      z-index: 3;
+    }
+
+    .topbar {
+      border-bottom: 1px solid var(--cp-border);
+    }
+
+    .bottombar {
+      border-top: 1px solid var(--cp-border);
+    }
+
+    .brand {
+      align-items: center;
+      display: flex;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      background: var(--cp-accent);
+      border-radius: 0.625rem;
+      color: var(--cp-accent-fg);
+      display: grid;
+      font-weight: 700;
+      height: 34px;
+      place-items: center;
+      width: 34px;
+    }
+
+    .brand-title {
+      font-size: 14px;
+      font-weight: 700;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .meta {
+      color: var(--cp-text-muted);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .stage {
+      display: grid;
+      min-height: 0;
+      padding: 28px;
+      place-items: center;
+    }
+
+    .slide {
+      aspect-ratio: 16 / 9;
+      background: var(--cp-surface);
+      border: 1px solid var(--cp-border);
+      border-radius: 16px;
+      box-shadow: 0 0 2px var(--cp-border), 0 1px 2px var(--cp-border);
+      display: none;
+      max-height: calc(100vh - 152px);
+      max-width: min(1280px, calc(100vw - 56px));
+      overflow: hidden;
+      padding: 56px;
+      position: relative;
+      width: 100%;
+    }
+
+    .slide.active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .slide::after {
+      background: var(--cp-accent-soft);
+      border-radius: 999px;
+      content: "";
+      height: 280px;
+      position: absolute;
+      right: -120px;
+      top: -120px;
+      width: 280px;
+      z-index: 0;
+    }
+
+    .slide > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .eyebrow {
+      color: var(--cp-accent);
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      margin: 0 0 18px;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2 {
+      letter-spacing: -0.04em;
+      line-height: 1.02;
+      margin: 0;
+      max-width: 960px;
+    }
+
+    h1 {
+      font-size: clamp(52px, 6vw, 82px);
+    }
+
+    h2 {
+      font-size: clamp(40px, 4.6vw, 64px);
+    }
+
+    h3 {
+      font-size: 24px;
+      margin: 0 0 12px;
+    }
+
+    p {
+      color: var(--cp-text-muted);
+      font-size: clamp(22px, 2.2vw, 32px);
+      line-height: 1.28;
+      margin: 24px 0 0;
+      max-width: 960px;
+    }
+
+    strong {
+      color: var(--cp-text);
+    }
+
+    .subtitle {
+      max-width: 900px;
+    }
+
+    .content {
+      display: grid;
+      flex: 1;
+      gap: 24px;
+      margin-top: 34px;
+    }
+
+    .two-col {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .three-col {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .card,
+    .quote,
+    .code,
+    .diagram-box {
+      background: var(--cp-surface-soft);
+      border: 1px solid var(--cp-border);
+      border-radius: 16px;
+      box-shadow: 0 0 2px var(--cp-border), 0 1px 2px var(--cp-border);
+      padding: 26px;
+    }
+
+    .card p,
+    .quote p,
+    .diagram-box p {
+      font-size: 22px;
+      margin-top: 8px;
+    }
+
+    .tag {
+      background: var(--cp-accent-soft);
+      border: 1px solid var(--cp-border);
+      border-radius: 999px;
+      color: var(--cp-accent);
+      display: inline-flex;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      margin-bottom: 16px;
+      padding: 7px 12px;
+      text-transform: uppercase;
+    }
+
+    ul {
+      display: grid;
+      gap: 14px;
+      margin: 24px 0 0;
+      padding: 0;
+    }
+
+    li {
+      align-items: flex-start;
+      color: var(--cp-text-muted);
+      display: flex;
+      font-size: clamp(21px, 2vw, 28px);
+      gap: 12px;
+      line-height: 1.25;
+      list-style: none;
+    }
+
+    li::before {
+      background: var(--cp-accent);
+      border-radius: 999px;
+      content: "";
+      flex: 0 0 auto;
+      height: 9px;
+      margin-top: 13px;
+      width: 9px;
+    }
+
+    .small-list li {
+      font-size: 22px;
+    }
+
+    .quote {
+      align-items: center;
+      display: flex;
+      min-height: 250px;
+    }
+
+    .quote p {
+      color: var(--cp-text);
+      font-size: clamp(32px, 4vw, 56px);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.08;
+      margin: 0;
+    }
+
+    .code {
+      color: var(--cp-text);
+      font-family: Consolas, "Courier New", Courier, monospace;
+      font-size: clamp(18px, 1.6vw, 24px);
+      line-height: 1.4;
+      white-space: pre;
+    }
+
+    .diagram {
+      align-items: center;
+      display: grid;
+      gap: 16px;
+      grid-template-columns: 1fr auto 1fr auto 1fr;
+      margin-top: 34px;
+    }
+
+    .node {
+      background: var(--cp-surface-soft);
+      border: 1px solid var(--cp-border);
+      border-radius: 16px;
+      box-shadow: 0 0 2px var(--cp-border), 0 1px 2px var(--cp-border);
+      padding: 26px;
+      text-align: center;
+    }
+
+    .node-title {
+      color: var(--cp-text);
+      font-size: 26px;
+      font-weight: 800;
+      margin: 0;
+    }
+
+    .node-desc {
+      color: var(--cp-text-muted);
+      font-size: 18px;
+      margin: 8px 0 0;
+    }
+
+    .arrow {
+      color: var(--cp-accent);
+      font-size: 34px;
+      font-weight: 900;
+    }
+
+    .compare {
+      display: grid;
+      gap: 20px;
+      grid-template-columns: 1fr 1fr;
+      margin-top: 34px;
+    }
+
+    .compare h3 {
+      align-items: center;
+      display: flex;
+      gap: 10px;
+    }
+
+    .status-dot {
+      background: var(--cp-accent);
+      border-radius: 999px;
+      display: inline-block;
+      height: 12px;
+      width: 12px;
+    }
+
+    .timeline {
+      align-items: stretch;
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(5, 1fr);
+      margin-top: 34px;
+    }
+
+    .step {
+      background: var(--cp-surface-soft);
+      border: 1px solid var(--cp-border);
+      border-radius: 16px;
+      padding: 22px;
+    }
+
+    .step-num {
+      color: var(--cp-accent);
+      font-size: 16px;
+      font-weight: 900;
+      margin-bottom: 10px;
+    }
+
+    .step-title {
+      color: var(--cp-text);
+      font-size: 21px;
+      font-weight: 800;
+      line-height: 1.15;
+      margin: 0;
+    }
+
+    .step p {
+      font-size: 17px;
+      margin-top: 8px;
+    }
+
+    .speaker-notes {
+      background: var(--cp-panel-strong);
+      border: 1px solid var(--cp-border);
+      border-radius: 16px;
+      bottom: 18px;
+      color: var(--cp-text-muted);
+      display: none;
+      font-size: 15px;
+      left: 56px;
+      line-height: 1.35;
+      padding: 14px 16px;
+      position: absolute;
+      right: 56px;
+      z-index: 2;
+    }
+
+    body.notes-visible .speaker-notes {
+      display: block;
+    }
+
+    .controls {
+      align-items: center;
+      display: flex;
+      gap: 8px;
+    }
+
+    .control {
+      background: var(--cp-surface);
+      border: 1px solid var(--cp-border);
+      border-radius: 0.625rem;
+      color: var(--cp-text);
+      cursor: pointer;
+      padding: 8px 12px;
+    }
+
+    .control:hover {
+      border-color: var(--cp-border-strong);
+    }
+
+    .control.primary {
+      background: var(--cp-accent);
+      border-color: var(--cp-accent);
+      color: var(--cp-accent-fg);
+      font-weight: 800;
+    }
+
+    .progress-wrap {
+      background: var(--cp-surface-soft);
+      border: 1px solid var(--cp-border);
+      border-radius: 999px;
+      height: 10px;
+      overflow: hidden;
+      width: min(360px, 35vw);
+    }
+
+    .progress {
+      background: var(--cp-accent);
+      height: 100%;
+      transition: width 180ms ease;
+      width: 0;
+    }
+
+    .slide-count {
+      color: var(--cp-text-muted);
+      font-size: 13px;
+      min-width: 54px;
+      text-align: right;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 880px) {
+      body {
+        overflow: auto;
+      }
+
+      .deck {
+        min-height: auto;
+      }
+
+      .stage {
+        padding: 16px;
+      }
+
+      .slide {
+        aspect-ratio: auto;
+        max-height: none;
+        max-width: none;
+        min-height: calc(100vh - 136px);
+        padding: 32px;
+      }
+
+      .two-col,
+      .three-col,
+      .compare,
+      .timeline,
+      .diagram {
+        grid-template-columns: 1fr;
+      }
+
+      .arrow {
+        transform: rotate(90deg);
+        text-align: center;
+      }
+
+      .meta.optional {
+        display: none;
+      }
+
+      .speaker-notes {
+        left: 32px;
+        right: 32px;
+      }
+    }
+
+    @media print {
+      body {
+        overflow: visible;
+      }
+
+      .topbar,
+      .bottombar {
+        display: none;
+      }
+
+      .deck {
+        display: block;
+      }
+
+      .stage {
+        display: block;
+        padding: 0;
+      }
+
+      .slide {
+        box-shadow: none;
+        display: flex;
+        max-height: none;
+        max-width: none;
+        page-break-after: always;
+      }
+
+      .speaker-notes {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="deck">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">Q</div>
+        <div class="brand-title">QMD + llm.wiki</div>
+      </div>
+      <div class="meta optional">12-minute technical explainer</div>
+    </header>
+
+    <section class="stage" aria-live="polite">
+      <article class="slide active" data-title="Title">
+        <p class="eyebrow">Engineering knowledge retrieval</p>
+        <h1>QMD and llm.wiki explained simply</h1>
+        <p class="subtitle">How Markdown docs become a useful knowledge system for developers and AI agents.</p>
+        <div class="speaker-notes">Timing: 45 seconds. Frame this as a practical talk: not "how to make AI smarter," but how to give AI and engineers the right source material.</div>
+      </article>
+
+      <article class="slide" data-title="Problem">
+        <p class="eyebrow">The problem</p>
+        <h2>Engineering docs are everywhere, but answers are hard to find.</h2>
+        <div class="content two-col">
+          <div class="card">
+            <span class="tag">Your wiki</span>
+            <ul class="small-list">
+              <li>Markdown files</li>
+              <li>RFCs and architecture notes</li>
+              <li>Setup guides and runbooks</li>
+              <li>API docs and team conventions</li>
+            </ul>
+          </div>
+          <div class="card">
+            <span class="tag">The user asks</span>
+            <p><strong>"How does auth work?"</strong></p>
+            <p>The system needs the correct docs, the correct sections, and the surrounding context.</p>
+          </div>
+        </div>
+        <div class="speaker-notes">Timing: 60 seconds. Use a concrete example from the audience's day-to-day work: auth, sync, build release, or incident response.</div>
+      </article>
+
+      <article class="slide" data-title="Markdown blobs">
+        <p class="eyebrow">Why normal search struggles</p>
+        <h2>To a computer, Markdown often looks like disconnected text blobs.</h2>
+        <div class="content two-col">
+          <div class="code">/docs/auth.md
+/docs/sync.md
+/docs/building-ios.md</div>
+          <div class="card">
+            <ul>
+              <li>Search retrieves noisy chunks</li>
+              <li>Headings and hierarchy get lost</li>
+              <li>Related pages are not connected</li>
+              <li>Answers become fuzzy or incomplete</li>
+            </ul>
+          </div>
+        </div>
+        <div class="speaker-notes">Timing: 60 seconds. Emphasize that Markdown is human-readable, but systems need help preserving the meaning already encoded in headings, links, and file structure.</div>
+      </article>
+
+      <article class="slide" data-title="QMD">
+        <p class="eyebrow">What QMD does</p>
+        <h2>QMD is a smart indexer for Markdown.</h2>
+        <div class="content three-col">
+          <div class="card">
+            <span class="tag">Documents</span>
+            <p>It knows a file is a document, not just raw text.</p>
+          </div>
+          <div class="card">
+            <span class="tag">Sections</span>
+            <p>It tracks headings and section boundaries.</p>
+          </div>
+          <div class="card">
+            <span class="tag">Relationships</span>
+            <p>It keeps links, tags, metadata, and page connections useful.</p>
+          </div>
+        </div>
+        <div class="speaker-notes">Timing: 75 seconds. Say: QMD does not answer the question itself. It prepares the docs so another layer can retrieve accurately.</div>
+      </article>
+
+      <article class="slide" data-title="Library analogy">
+        <p class="eyebrow">Mental model</p>
+        <h2>Without QMD, the library is a pile of pages.</h2>
+        <div class="compare">
+          <div class="card">
+            <h3><span class="status-dot"></span>Without QMD</h3>
+            <p>Pages are dumped into one giant pile. Search can find words, but not always meaning.</p>
+          </div>
+          <div class="card">
+            <h3><span class="status-dot"></span>With QMD</h3>
+            <p>Books, chapters, cross-references, and topics are organized so the librarian knows where everything belongs.</p>
+          </div>
+        </div>
+        <div class="speaker-notes">Timing: 60 seconds. This is the key junior-engineer-friendly analogy. Keep it simple and visual.</div>
+      </article>
+
+      <article class="slide" data-title="llm.wiki">
+        <p class="eyebrow">What llm.wiki does</p>
+        <h2>If QMD is the librarian, llm.wiki is the assistant at the desk.</h2>
+        <div class="timeline">
+          <div class="step">
+            <div class="step-num">01</div>
+            <div class="step-title">User asks</div>
+            <p>"How does token refresh work on iOS?"</p>
+          </div>
+          <div class="step">
+            <div class="step-num">02</div>
+            <div class="step-title">Search docs</div>
+            <p>Find relevant indexed sections.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">03</div>
+            <div class="step-title">Gather context</div>
+            <p>Add related pages and links.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">04</div>
+            <div class="step-title">Send to LLM</div>
+            <p>Only useful context goes in.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">05</div>
+            <div class="step-title">Answer</div>
+            <p>The response is grounded in docs.</p>
+          </div>
+        </div>
+        <div class="speaker-notes">Timing: 90 seconds. Separate the two jobs: QMD organizes knowledge; llm.wiki uses organized knowledge to answer questions.</div>
+      </article>
+
+      <article class="slide" data-title="Bad pipeline">
+        <p class="eyebrow">The common baseline</p>
+        <h2>Basic AI doc search works badly at scale.</h2>
+        <div class="diagram">
+          <div class="node">
+            <div class="node-title">Docs</div>
+            <div class="node-desc">Large wiki corpus</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="node">
+            <div class="node-title">Random chunks</div>
+            <div class="node-desc">Structure gets cut up</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="node">
+            <div class="node-title">Fuzzy answer</div>
+            <div class="node-desc">Context may be wrong</div>
+          </div>
+        </div>
+        <ul>
+          <li>Sections get separated from their headings</li>
+          <li>Exact searches are weak</li>
+          <li>Important docs are missed</li>
+        </ul>
+        <div class="speaker-notes">Timing: 60 seconds. Avoid over-explaining vectors. The point is simple: naive chunking loses context.</div>
+      </article>
+
+      <article class="slide" data-title="Good pipeline">
+        <p class="eyebrow">The QMD + llm.wiki pipeline</p>
+        <h2>Preserve structure first, then ask the LLM.</h2>
+        <div class="diagram">
+          <div class="node">
+            <div class="node-title">Markdown docs</div>
+            <div class="node-desc">Human-authored knowledge</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="node">
+            <div class="node-title">QMD index</div>
+            <div class="node-desc">Documents, sections, links</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="node">
+            <div class="node-title">llm.wiki answer</div>
+            <div class="node-desc">Targeted context</div>
+          </div>
+        </div>
+        <div class="quote">
+          <p>Better answers come from better retrieval.</p>
+        </div>
+        <div class="speaker-notes">Timing: 75 seconds. This is the thesis slide. Make the claim memorable: the biggest win is retrieval quality, not magic model intelligence.</div>
+      </article>
+
+      <article class="slide" data-title="Skills">
+        <p class="eyebrow">What we built</p>
+        <h2>Two agent skills turn that idea into a daily workflow.</h2>
+        <div class="content two-col">
+          <div class="card">
+            <span class="tag">wiki-indexer</span>
+            <p>Answers: <strong>"What do our internal docs already know?"</strong></p>
+            <p>It indexes ADO wikis plus repo Markdown, then lets agents query them semantically.</p>
+          </div>
+          <div class="card">
+            <span class="tag">scout</span>
+            <p>Answers: <strong>"What does the rest of the world know?"</strong></p>
+            <p>It researches public web and GitHub sources, writes briefs, and makes them searchable too.</p>
+          </div>
+        </div>
+        <div class="speaker-notes">Timing: 40 seconds. This is the transition from concept to implementation. The point is that QMD and llm.wiki are not just abstract patterns; they became two practical skills.</div>
+      </article>
+
+      <article class="slide" data-title="wiki-indexer">
+        <p class="eyebrow">Skill 1: wiki-indexer</p>
+        <h2>wiki-indexer is one search layer over scattered internal knowledge.</h2>
+        <div class="content two-col">
+          <div class="card">
+            <span class="tag">Sources</span>
+            <ul class="small-list">
+              <li>Four Azure DevOps wikis</li>
+              <li>Markdown in CrossPlatform</li>
+              <li>Markdown in AndroidClient</li>
+              <li>Markdown in OneDrive.iOS</li>
+            </ul>
+          </div>
+          <div class="card">
+            <span class="tag">Boundary</span>
+            <p>It indexes human-readable docs, not source code.</p>
+            <p>For code, use IDE search or grep; for engineering knowledge, ask wiki-indexer.</p>
+          </div>
+        </div>
+        <div class="speaker-notes">Timing: 50 seconds. Mention the old pain: knowing which wiki to search, running separate searches, and manually stitching context together.</div>
+      </article>
+
+      <article class="slide" data-title="wiki-indexer stack">
+        <p class="eyebrow">How wiki-indexer uses QMD and llm.wiki</p>
+        <h2>It has three layers: local sources, QMD retrieval, llm.wiki curation.</h2>
+        <div class="diagram">
+          <div class="node">
+            <div class="node-title">Local clones</div>
+            <div class="node-desc">Shallow, sparse, Markdown-only</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="node">
+            <div class="node-title">QMD index</div>
+            <div class="node-desc">BM25 + embeddings + rerank</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="node">
+            <div class="node-title">llm.wiki layer</div>
+            <div class="node-desc">Catalog, changelog, topic pages</div>
+          </div>
+        </div>
+        <ul>
+          <li>QMD runs locally, with no document content leaving the machine</li>
+          <li>llm.wiki adds durable summaries and flags stale topic pages when sources change</li>
+        </ul>
+        <div class="speaker-notes">Timing: 60 seconds. Call out the key implementation detail: QMD gives retrieval; llm.wiki gives maintained, human-readable structure over the raw corpus.</div>
+      </article>
+
+      <article class="slide" data-title="wiki-indexer query flow">
+        <p class="eyebrow">From question to answer</p>
+        <h2>wiki-indexer gives the agent grounded source material.</h2>
+        <div class="timeline">
+          <div class="step">
+            <div class="step-num">01</div>
+            <div class="step-title">Ask</div>
+            <p>/wiki-indexer query "how do I run UI tests?"</p>
+          </div>
+          <div class="step">
+            <div class="step-num">02</div>
+            <div class="step-title">Retrieve</div>
+            <p>QMD ranks matching docs and snippets.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">03</div>
+            <div class="step-title">Read</div>
+            <p>The agent opens the top files in full.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">04</div>
+            <div class="step-title">Synthesize</div>
+            <p>It writes a direct answer.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">05</div>
+            <div class="step-title">Cite</div>
+            <p>Sources are included at the end.</p>
+          </div>
+        </div>
+        <div class="speaker-notes">Timing: 50 seconds. Stress that command-line output can be raw QMD results, but inside the agent experience Claude reads and synthesizes from the retrieved source files.</div>
+      </article>
+
+      <article class="slide" data-title="Scout">
+        <p class="eyebrow">Skill 2: scout</p>
+        <h2>Scout builds on wiki-indexer by adding external research.</h2>
+        <div class="compare">
+          <div class="card">
+            <h3><span class="status-dot"></span>wiki-indexer</h3>
+            <p>Internal ADO wikis and in-repo Markdown. Great for "what do we know?"</p>
+          </div>
+          <div class="card">
+            <h3><span class="status-dot"></span>scout</h3>
+            <p>Public web, GitHub repos, and optional local files. Great for "what should we learn?"</p>
+          </div>
+        </div>
+        <p>Same QMD backend. Same llm.wiki sensibility. Expanded source domain.</p>
+        <div class="speaker-notes">Timing: 50 seconds. Present Scout as the younger sibling: it inherits wiki-indexer's cache style, QMD backend, and llm.wiki pattern, then adds research automation.</div>
+      </article>
+
+      <article class="slide" data-title="Scout pipeline">
+        <p class="eyebrow">How Scout uses QMD and llm.wiki</p>
+        <h2>Scout turns fetched sources into reusable, searchable briefs.</h2>
+        <div class="timeline">
+          <div class="step">
+            <div class="step-num">01</div>
+            <div class="step-title">Sources</div>
+            <p>Fetch web pages, GitHub repos, or local files.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">02</div>
+            <div class="step-title">QMD</div>
+            <p>Register sources and embed them into the shared index.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">03</div>
+            <div class="step-title">Claims</div>
+            <p>Mappers extract question-specific claims.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">04</div>
+            <div class="step-title">Sections</div>
+            <p>Writers build sections in parallel.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">05</div>
+            <div class="step-title">Brief</div>
+            <p>Assembler writes a cited Markdown brief.</p>
+          </div>
+        </div>
+        <div class="speaker-notes">Timing: 70 seconds. Explain that for small jobs Scout can synthesize in one pass; for larger research it uses map-reduce: mappers, abstractors, planner, section writers, assembler.</div>
+      </article>
+
+      <article class="slide" data-title="Unified corpus">
+        <p class="eyebrow">The combined payoff</p>
+        <h2>Both skills feed the same searchable knowledge base.</h2>
+        <div class="content two-col">
+          <div class="card">
+            <span class="tag">One query can search</span>
+            <ul class="small-list">
+              <li>Internal wiki pages</li>
+              <li>In-repo design docs</li>
+              <li>Scout research briefs</li>
+              <li>Raw sources behind the briefs</li>
+            </ul>
+          </div>
+          <div class="quote">
+            <p>Prior research becomes part of future retrieval.</p>
+          </div>
+        </div>
+        <div class="speaker-notes">Timing: 50 seconds. This is the architectural payoff: Scout registers its own collections with QMD, so queries can rank internal docs, external research, and prior briefs together.</div>
+      </article>
+
+      <article class="slide" data-title="Example">
+        <p class="eyebrow">Concrete example</p>
+        <h2>"How are sync conflicts handled on iOS?"</h2>
+        <div class="content two-col">
+          <div class="code">/docs
+  auth.md
+  sync.md
+  ios-sync.md
+  android-sync.md
+
+# iOS Sync
+## Conflict Resolution</div>
+          <div class="card">
+            <span class="tag">What QMD knows</span>
+            <ul class="small-list">
+              <li>"Conflict Resolution" is a section</li>
+              <li>It belongs under "iOS Sync"</li>
+              <li>It relates to the broader sync docs</li>
+            </ul>
+          </div>
+        </div>
+        <div class="speaker-notes">Timing: 75 seconds. Walk through how the answer improves: exact section, correct parent topic, related docs included, fewer unrelated chunks.</div>
+      </article>
+
+      <article class="slide" data-title="Why engineers care">
+        <p class="eyebrow">Why engineers like this</p>
+        <h2>The payoff is practical, not theoretical.</h2>
+        <div class="content three-col">
+          <div class="card">
+            <span class="tag">Onboarding</span>
+            <p>New engineers can ask real questions and find real docs faster.</p>
+          </div>
+          <div class="card">
+            <span class="tag">Agent work</span>
+            <p>Coding agents retrieve targeted context before making changes.</p>
+          </div>
+          <div class="card">
+            <span class="tag">Doc value</span>
+            <p>Existing Markdown becomes more useful without rewriting everything.</p>
+          </div>
+        </div>
+        <div class="speaker-notes">Timing: 60 seconds. Connect this to day-to-day engineering productivity: fewer repeated Slack questions, less stale tribal knowledge, better agent grounding.</div>
+      </article>
+
+      <article class="slide" data-title="Takeaway">
+        <p class="eyebrow">Final takeaway</p>
+        <h2>Markdown already contains structure. QMD preserves it. llm.wiki uses it.</h2>
+        <div class="content two-col">
+          <div class="card">
+            <span class="tag">Simple mental model</span>
+            <ul class="small-list">
+              <li>QMD: smart search index for Markdown</li>
+              <li>llm.wiki: AI chat layer on top of docs</li>
+              <li>Together: "ChatGPT for your engineering wiki"</li>
+            </ul>
+          </div>
+          <div class="quote">
+            <p>The biggest benefit is better retrieval quality.</p>
+          </div>
+        </div>
+        <div class="speaker-notes">Timing: 60 seconds. Close by repeating the one-line summary. If there is Q&A, invite questions about where this would fit in their current docs workflow.</div>
+      </article>
+    </section>
+
+    <footer class="bottombar">
+      <div class="controls">
+        <button class="control" id="prev" type="button" aria-label="Previous slide">Back</button>
+        <button class="control primary" id="next" type="button" aria-label="Next slide">Next</button>
+        <button class="control" id="notes" type="button" aria-label="Toggle speaker notes">Notes</button>
+      </div>
+      <div class="progress-wrap" aria-hidden="true">
+        <div class="progress" id="progress"></div>
+      </div>
+      <div class="slide-count" id="count"></div>
+    </footer>
+  </main>
+
+  <script>
+    const slides = Array.from(document.querySelectorAll(".slide"));
+    const count = document.getElementById("count");
+    const progress = document.getElementById("progress");
+    const prev = document.getElementById("prev");
+    const next = document.getElementById("next");
+    const notes = document.getElementById("notes");
+    let index = 0;
+
+    function setSlide(nextIndex) {
+      index = Math.max(0, Math.min(slides.length - 1, nextIndex));
+      slides.forEach((slide, slideIndex) => {
+        slide.classList.toggle("active", slideIndex === index);
+      });
+      count.textContent = `${index + 1} / ${slides.length}`;
+      progress.style.width = `${((index + 1) / slides.length) * 100}%`;
+      prev.disabled = index === 0;
+      next.disabled = index === slides.length - 1;
+      document.title = `${slides[index].dataset.title} - QMD and llm.wiki`;
+    }
+
+    prev.addEventListener("click", () => setSlide(index - 1));
+    next.addEventListener("click", () => setSlide(index + 1));
+    notes.addEventListener("click", () => document.body.classList.toggle("notes-visible"));
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowRight" || event.key === "PageDown" || event.key === " ") {
+        event.preventDefault();
+        setSlide(index + 1);
+      }
+      if (event.key === "ArrowLeft" || event.key === "PageUp") {
+        event.preventDefault();
+        setSlide(index - 1);
+      }
+      if (event.key.toLowerCase() === "n") {
+        document.body.classList.toggle("notes-visible");
+      }
+      if (event.key.toLowerCase() === "f") {
+        document.documentElement.requestFullscreen?.();
+      }
+      if (event.key === "Escape" && document.fullscreenElement) {
+        document.exitFullscreen?.();
+      }
+    });
+
+    setSlide(0);
+  </script>
+</body>
+</html>
