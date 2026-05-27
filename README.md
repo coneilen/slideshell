@@ -13,6 +13,12 @@ Press <kbd>⌘</kbd>+<kbd>`</kbd> (or <kbd>Ctrl</kbd>+<kbd>`</kbd>) to flip betw
   <img src="assets/icon.png" width="180" alt="SlideShell icon" />
 </p>
 
+## Demo
+
+<p align="center">
+  <img src="slideshell-lorem-terminal-demo.gif" alt="SlideShell demo: opening a deck and flipping to the terminal" />
+</p>
+
 ## Features
 
 - **Live HTML decks** — open any local `.html` file via the OS file dialog; SlideShell renders it untouched, so all the deck's own keyboard shortcuts (←/→, space, `n`, `f`, …) keep working.
