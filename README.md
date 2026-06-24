@@ -2,12 +2,13 @@
 
 > A handy app for when presenting: show a slide deck and switch instantly to a real `zsh` terminal in the same window.
 
-SlideShell is a tiny Electron app with two tabs:
+SlideShell is a tiny Electron app with three tabs:
 
 1. **Slides** — loads any self-contained HTML slide deck in an iframe.
-2. **Terminal** — a full-featured `zsh` session powered by [xterm.js](https://xtermjs.org/) and [node-pty](https://github.com/microsoft/node-pty).
+2. **Markdown** — opens any local `.md` file and renders it (GitHub-flavoured) with relative images and links resolved against the file's folder.
+3. **Terminal** — a full-featured `zsh` session powered by [xterm.js](https://xtermjs.org/) and [node-pty](https://github.com/microsoft/node-pty).
 
-Press <kbd>⌘</kbd>+<kbd>`</kbd> (or <kbd>Ctrl</kbd>+<kbd>`</kbd>) to flip between the two. No more alt-tabbing to a separate terminal in the middle of a demo, no more risk of clicking the wrong window and exposing your messy desktop.
+Press <kbd>⌘</kbd>+<kbd>`</kbd> (or <kbd>Ctrl</kbd>+<kbd>`</kbd>) to cycle between them. No more alt-tabbing to a separate terminal in the middle of a demo, no more risk of clicking the wrong window and exposing your messy desktop.
 
 <p align="center">
   <img src="assets/icon.png" width="180" alt="SlideShell icon" />
@@ -22,8 +23,9 @@ Press <kbd>⌘</kbd>+<kbd>`</kbd> (or <kbd>Ctrl</kbd>+<kbd>`</kbd>) to flip betw
 ## Features
 
 - **Live HTML decks** — open any local `.html` file via the OS file dialog; SlideShell renders it untouched, so all the deck's own keyboard shortcuts (←/→, space, `n`, `f`, …) keep working.
+- **Rendered Markdown** — open any `.md` file and read it as styled HTML (headings, code blocks, tables, blockquotes). Uses [marked](https://marked.js.org/) and is sanitized with [DOMPurify](https://github.com/cure53/DOMPurify). Relative `![]()` image paths and `[]()` links resolve against the markdown file's own directory.
 - **Real terminal** — a proper login `zsh` (or your `$SHELL`), not a fake REPL. Your `~/.zprofile` and `~/.zshrc` are honoured, so aliases, `nvm`, `pyenv`, prompt themes, etc. all work exactly as they do in Terminal.app or iTerm.
-- **Snappy tab switching** — <kbd>⌘</kbd>+<kbd>`</kbd> toggles tabs. The terminal automatically re-fits and re-sizes the underlying PTY when you switch in or resize the window.
+- **Snappy tab switching** — <kbd>⌘</kbd>+<kbd>`</kbd> cycles through the tabs. The terminal automatically re-fits and re-sizes the underlying PTY when you switch in or resize the window.
 - **Light + dark theme** — chrome follows `prefers-color-scheme` and uses the same Clawpilot token palette as the bundled sample deck.
 - **Native-feeling icon** — the macOS Dock, taskbar, and in-window favicon all share a custom presentation-deck-with-terminal icon (`assets/icon.{svg,png,icns}`).
 

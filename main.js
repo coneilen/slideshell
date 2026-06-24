@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, dialog, nativeImage } = require("electron");
 const path = require("node:path");
 const os = require("node:os");
+const fs = require("node:fs/promises");
 const pty = require("node-pty");
 
 const ptys = new Map();
@@ -35,6 +36,28 @@ ipcMain.handle("deck:pick", async (event) => {
   });
   if (result.canceled || result.filePaths.length === 0) return null;
   return result.filePaths[0];
+});
+
+ipcMain.handle("md:pick", async (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  const result = await dialog.showOpenDialog(win, {
+    title: "Choose a markdown file",
+    properties: ["openFile"],
+    filters: [
+      { name: "Markdown", extensions: ["md", "markdown", "mdown", "mkd"] },
+      { name: "All files", extensions: ["*"] },
+    ],
+  });
+  if (result.canceled || result.filePaths.length === 0) return null;
+  return result.filePaths[0];
+});
+
+ipcMain.handle("md:read", async (_event, filePath) => {
+  if (typeof filePath !== "string" || !filePath) {
+    throw new Error("md:read requires a file path");
+  }
+  const text = await fs.readFile(filePath, "utf8");
+  return { path: filePath, dir: path.dirname(filePath), text };
 });
 
 ipcMain.handle("pty:spawn", (event, { cols, rows }) => {

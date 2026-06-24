@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data: file:; frame-src file:;" />
+        content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data: file:; frame-src file:; media-src 'self' file:;" />
   <title>SlideShell</title>
   <link rel="icon" href="../assets/icon.png" />
   <link rel="stylesheet" href="../node_modules/@xterm/xterm/css/xterm.css" />
@@ -16,8 +16,10 @@
       <span class="brand-name">SlideShell</span>
     </span>
     <button class="tab active" role="tab" data-tab="slides" aria-selected="true">Slides</button>
+    <button class="tab" role="tab" data-tab="markdown" aria-selected="false">Markdown</button>
     <button class="tab" role="tab" data-tab="terminal" aria-selected="false">Terminal</button>
     <div class="spacer"></div>
+    <button class="action" id="open-md" type="button" hidden>Open markdown…</button>
     <button class="action" id="open-deck" type="button">Open deck…</button>
     <span class="deck-path" id="deck-path">no deck loaded</span>
   </header>
@@ -31,11 +33,23 @@
       <iframe id="deck-frame" title="Slide deck" hidden></iframe>
     </section>
 
+    <section class="pane" id="pane-markdown" role="tabpanel">
+      <div class="placeholder" id="md-placeholder">
+        <p>Choose a Markdown file to view it rendered.</p>
+        <button class="action primary" id="open-md-2" type="button">Open markdown…</button>
+      </div>
+      <div id="md-scroll" hidden>
+        <article class="markdown-body" id="md-content"></article>
+      </div>
+    </section>
+
     <section class="pane" id="pane-terminal" role="tabpanel">
       <div id="terminal"></div>
     </section>
   </main>
 
+  <script src="../node_modules/marked/lib/marked.umd.js"></script>
+  <script src="../node_modules/dompurify/dist/purify.min.js"></script>
   <script src="../node_modules/@xterm/xterm/lib/xterm.js"></script>
   <script src="../node_modules/@xterm/addon-fit/lib/addon-fit.js"></script>
   <script src="renderer.js"></script>

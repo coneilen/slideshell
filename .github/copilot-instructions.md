@@ -2,12 +2,13 @@
 
 ## What this app is
 
-**SlideShell** is an **Electron desktop app** that shows two tabs:
+**SlideShell** is an **Electron desktop app** that shows three tabs:
 
 - **Slides** — an `<iframe>` that loads a user-chosen self-contained HTML slide deck (the Clawpilot deck format; see `qmd-llmwiki-slide-presentation.html` for the canonical example).
+- **Markdown** — renders a user-chosen `.md` file via [`marked`](https://marked.js.org/) + [`DOMPurify`](https://github.com/cure53/DOMPurify). The renderer rewrites relative `<img src>` and `<a href>` to `file://` URLs based on the markdown file's directory so embedded images and intra-wiki links work.
 - **Terminal** — an xterm.js terminal wired through IPC to a `node-pty` zsh process running in the Electron main process.
 
-On launch the user picks a deck via the OS file dialog (or the "Open deck…" button); the Terminal tab spawns its pty automatically the first time the renderer loads. `Cmd/Ctrl + \`` toggles between tabs.
+On launch the user picks a deck via the OS file dialog (or the "Open deck…" button); the Terminal tab spawns its pty automatically the first time the renderer loads. `Cmd/Ctrl + \`` cycles through the three tabs in order (slides → markdown → terminal).
 
 ## Commands
 
@@ -29,7 +30,7 @@ Three layers, communicating only via the channels listed below:
 ```
 
 - **main.js** owns all Node-side state: the `BrowserWindow`, the file dialog, and a `Map<string, IPty>` of live pty processes keyed by their pid (as a string). It is the only place that imports `node-pty`. When the window closes, every pty in the map is killed.
-- **preload.js** is the *only* bridge. It uses `contextBridge.exposeInMainWorld("api", …)` to expose `pickDeck()` and a `pty` namespace (`spawn`, `write`, `resize`, `kill`, `onData`, `onExit`). The renderer has `contextIsolation: true` and `nodeIntegration: false` — never reach for `require`/`ipcRenderer` directly in renderer code; extend `preload.js` instead.
+- **preload.js** is the *only* bridge. It uses `contextBridge.exposeInMainWorld("api", …)` to expose `pickDeck()`, `pickMarkdown()`, `readMarkdown(path)` and a `pty` namespace (`spawn`, `write`, `resize`, `kill`, `onData`, `onExit`). The renderer has `contextIsolation: true` and `nodeIntegration: false` — never reach for `require`/`ipcRenderer` directly in renderer code; extend `preload.js` instead.
 - **renderer/renderer.js** is an ES module loaded with `<script type="module">`. It imports xterm directly from `node_modules/` via relative paths — there is no bundler. If you add a renderer dependency, either import it the same way or vendor it; do not introduce webpack/vite without discussion.
 
 ### IPC channels (the contract)
@@ -37,6 +38,8 @@ Three layers, communicating only via the channels listed below:
 | Channel        | Direction          | Payload                              | Notes |
 |----------------|--------------------|--------------------------------------|-------|
 | `deck:pick`    | renderer → main (invoke) | —                              | Returns absolute path string or `null`. |
+| `md:pick`      | renderer → main (invoke) | —                              | Returns absolute `.md` path string or `null`. |
+| `md:read`      | renderer → main (invoke) | `path: string`                 | Returns `{ path, dir, text }`. The renderer parses + sanitizes; main does not touch HTML. |
 | `pty:spawn`    | renderer → main (invoke) | `{ cols, rows }`               | Returns the pty id (its pid as a string). |
 | `pty:input`    | renderer → main (send)   | `{ id, data }`                 | Raw keystrokes from xterm `onData`. |
 | `pty:resize`   | renderer → main (send)   | `{ id, cols, rows }`           | Wrapped in try/catch in main — a resize racing with exit must not crash. |

@@ -3,6 +3,9 @@ const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld("api", {
   pickDeck: () => ipcRenderer.invoke("deck:pick"),
 
+  pickMarkdown: () => ipcRenderer.invoke("md:pick"),
+  readMarkdown: (filePath) => ipcRenderer.invoke("md:read", filePath),
+
   pty: {
     spawn: (size) => ipcRenderer.invoke("pty:spawn", size),
     write: (id, data) => ipcRenderer.send("pty:input", { id, data }),

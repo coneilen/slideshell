@@ -10,12 +10,14 @@
     "postinstall": "electron-rebuild -f -w node-pty || true"
   },
   "devDependencies": {
-    "electron": "^32.0.0",
-    "@electron/rebuild": "^3.6.0"
+    "@electron/rebuild": "^3.6.0",
+    "electron": "^32.0.0"
   },
   "dependencies": {
-    "node-pty": "^1.0.0",
+    "@xterm/addon-fit": "^0.10.0",
     "@xterm/xterm": "^5.5.0",
-    "@xterm/addon-fit": "^0.10.0"
+    "dompurify": "^3.4.11",
+    "marked": "^18.0.5",
+    "node-pty": "^1.0.0"
   }
 }
